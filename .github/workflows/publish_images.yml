@@ -126,3 +126,23 @@ jobs:
           fi
 
           docker buildx imagetools inspect "${IMAGE_NAME}:${IMAGE_TAG}"
+
+  smoke-test-installer:
+    name: Smoke-test VPS installer
+    runs-on: ubuntu-latest
+    needs: manifest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install from the public installer
+        run: |
+          sudo bash ./install.sh \
+            --hostname 127.0.0.1 \
+            --api-port 8081 \
+            --keys-port 9999
+
+      - name: Clean up test containers
+        if: always()
+        run: |
+          sudo docker rm --force shadowbox watchtower || true
