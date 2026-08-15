@@ -165,7 +165,10 @@ export class PrometheusManagerMetrics implements ManagerMetrics {
       locations: [],
     };
 
-    const bandwidthRangeValues = bandwidthRange.result[0].values ?? [];
+    // Prometheus returns an empty result while the server has no traffic yet.
+    // Keep the metrics endpoint usable in that state instead of dereferencing
+    // an absent first result.
+    const bandwidthRangeValues = bandwidthRange.result[0]?.values ?? [];
     const currentBandwidth = bandwidthRangeValues[bandwidthRangeValues.length - 1];
 
     if (currentBandwidth) {
