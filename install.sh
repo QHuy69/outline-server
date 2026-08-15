@@ -12,9 +12,12 @@ readonly DEFAULT_IMAGE='ghcr.io/qhuy69/outline-server:latest'
 
 fetch() {
   if command -v wget >/dev/null 2>&1; then
-    wget --quiet --show-progress -O - "$1"
+    # Some VPS networks advertise IPv6 but do not route it correctly. Use
+    # IPv4 and a finite timeout so a failed GitHub connection is actionable.
+    wget --inet4-only --timeout=20 --tries=3 --show-progress -O - "$1"
   elif command -v curl >/dev/null 2>&1; then
-    curl --fail --silent --show-error --location "$1"
+    curl --ipv4 --fail --silent --show-error --location \
+      --connect-timeout 20 --max-time 60 "$1"
   else
     echo 'error: wget or curl is required' >&2
     return 1
