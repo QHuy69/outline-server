@@ -15,7 +15,9 @@
 name: License checks
 
 concurrency:
-  group: ${{ github.head_ref || github.ref }}
+  # Keep license checks independent from other workflows that use the same
+  # branch-based concurrency key.
+  group: license-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 on:
