@@ -24,6 +24,29 @@ fetch() {
   fi
 }
 
+has_hostname_arg() {
+  for arg in "$@"; do
+    case "${arg}" in
+      --hostname|--hostname=*) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+# Make the common case fully automatic. The upstream installer requires a
+# public hostname for access URLs, so discover the VPS public IPv4 when the
+# caller did not provide one explicitly.
+if ! has_hostname_arg "$@"; then
+  public_ip=''
+  if public_ip="$(fetch 'https://api.ipify.org' 2>/dev/null | tr -d '[:space:]')" \
+    && [[ "${public_ip}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+    set -- --hostname "${public_ip}" "$@"
+  else
+    echo 'error: could not detect the VPS public IPv4; rerun with --hostname YOUR_PUBLIC_IP' >&2
+    exit 1
+  fi
+fi
+
 installer_file="$(mktemp)"
 trap 'rm -f "${installer_file}"' EXIT
 
